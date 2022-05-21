@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+
+import 'package:chat/services/services.dart';
 import 'package:chat/widgets/widgets.dart';
+import 'package:chat/helpers/helpers.dart';
 
 class LoginScreen extends StatelessWidget {
    
@@ -59,6 +63,9 @@ class __FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       margin: const EdgeInsets.only(
         top: 40.0,
@@ -82,11 +89,34 @@ class __FormState extends State<_Form> {
           ),
           BlueButton(
             text: 'Login',
-            onPressed: () {}
+            onPressed: authService.isAuthenticating ? null : () async {
+
+              FocusScope.of(context).unfocus();
+              
+              final loginOk = await authService.login(
+                email: emailEditingController.text.trim(), 
+                password: passwordEditingController.text.trim()
+              );
+
+              if (loginOk) {
+                _navigatorToUsersPage(context: context);
+              } else {
+                showCustomDialog(
+                  context: context,
+                  title: 'Login incorrecto',
+                  subtitle: 'Revise sus credenciales nuevamente'
+                );
+              }
+
+            }
           )
         ],
       ),
     );
   }
+
+  void _navigatorToUsersPage({required BuildContext context}) {
+    Navigator.pushReplacementNamed(context, 'users');
+  } 
 }
 

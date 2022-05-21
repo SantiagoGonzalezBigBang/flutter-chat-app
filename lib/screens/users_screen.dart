@@ -1,6 +1,10 @@
-import 'package:chat/models/models.dart';
 import 'package:flutter/material.dart';
+
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+
+import 'package:chat/models/models.dart';
+import 'package:chat/services/services.dart';
 
 class UsersScreen extends StatefulWidget {   
   const UsersScreen({
@@ -23,11 +27,15 @@ class _UsersScreenState extends State<UsersScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final authService = Provider.of<AuthService>(context);
+    final UserModel userModel = authService.userModel!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Mi Nombre',
-          style: TextStyle(
+        title: Text(
+          userModel.name,
+          style: const TextStyle(
             color: Colors.black87
           ),
         ),
@@ -35,7 +43,8 @@ class _UsersScreenState extends State<UsersScreen> {
         backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () {
-            
+            Navigator.pushReplacementNamed(context, 'login');
+            authService.logout();
           }, 
           icon: const Icon(
             Icons.exit_to_app,

@@ -1,4 +1,7 @@
+import 'package:chat/screens/screens.dart';
+import 'package:chat/services/services.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoadingScreen extends StatelessWidget {
    
@@ -8,10 +11,37 @@ class LoadingScreen extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('LoadingScreen'),
+    return Scaffold(
+      body: FutureBuilder(
+        future: checkLoginState(context),
+        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+          return const Center(
+            child: CircularProgressIndicator.adaptive()
+          );
+        },        
       ),
     );
   }
+
+  Future checkLoginState(BuildContext context) async {
+
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    final isLoggedIn = await authService.isLoggedIn();
+
+    if (isLoggedIn) {
+      _customNavigator(context: context, screen: const UsersScreen());
+    } else {
+      _customNavigator(context: context, screen: const LoginScreen());
+    }
+
+  }
+
+  void _customNavigator({required BuildContext context, required Widget screen}) {
+    Navigator.pushReplacement(context, PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => screen,
+      transitionDuration: const Duration(milliseconds: 0)
+    ));
+  } 
+
 }

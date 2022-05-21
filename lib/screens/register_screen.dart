@@ -1,6 +1,10 @@
+import 'package:chat/helpers/helpers.dart';
 import 'package:flutter/material.dart';
 
 import 'package:chat/widgets/widgets.dart';
+import 'package:provider/provider.dart';
+
+import '../services/services.dart';
 
 class RegisterScreen extends StatelessWidget {
    
@@ -60,6 +64,9 @@ class __FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+
+    final authService = Provider.of<AuthService>(context);
+    
     return Container(
       margin: const EdgeInsets.only(
         top: 40.0,
@@ -89,11 +96,35 @@ class __FormState extends State<_Form> {
           ),
           BlueButton(
             text: 'Sign Up',
-            onPressed: () {}
+            onPressed: authService.isAuthenticating ? null : () async {
+
+              FocusScope.of(context).unfocus();
+              
+              final registerOk = await authService.register(
+                name: nameEditingController.text.trim(),
+                email: emailEditingController.text.trim(), 
+                password: passwordEditingController.text.trim()
+              );
+
+              if (registerOk == true) {
+                _navigatorToUsersPage(context: context);
+              } else {
+                showCustomDialog(
+                  context: context,
+                  title: 'Registro incorrecto',
+                  subtitle: registerOk
+                );
+              }
+
+            }
           )
         ],
       ),
     );
   }
+
+  void _navigatorToUsersPage({required BuildContext context}) {
+    Navigator.pushReplacementNamed(context, 'users');
+  } 
 }
 
