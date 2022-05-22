@@ -17,19 +17,24 @@ class UsersScreen extends StatefulWidget {
 
 class _UsersScreenState extends State<UsersScreen> {
 
+  final getUsersService = GetUsersService();
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
 
-  final users = [
-    UserModel(uid: '1', name: 'Maria',    email: 'test1@test.com', isOnline: true),
-    UserModel(uid: '2', name: 'Melissa',  email: 'test2@test.com', isOnline: false),
-    UserModel(uid: '3', name: 'Fernando', email: 'test3@test.com', isOnline: true),
-  ];
+  List<UserModel> users = [];
+
+  @override
+  void initState() {
+    _loadUsers();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
 
-    final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context);
+    final authService   = Provider.of<AuthService>(context);
     final UserModel userModel = authService.userModel!;
+
     
     return Scaffold(
       appBar: AppBar(
@@ -43,6 +48,7 @@ class _UsersScreenState extends State<UsersScreen> {
         backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () {
+            socketService.disconnect();
             Navigator.pushReplacementNamed(context, 'login');
             authService.logout();
           }, 
@@ -54,7 +60,7 @@ class _UsersScreenState extends State<UsersScreen> {
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 10.0),
-            child: true ? Icon(
+            child: socketService.serverStatus == ServerStatus.online ? Icon(
               Icons.check_circle,
               color: Colors.blue[400],
             ) : const Icon(
@@ -110,12 +116,18 @@ class _UsersScreenState extends State<UsersScreen> {
           color: userModel.isOnline ? Colors.green[300] : Colors.red
         ),
       ),
+      onTap: () {
+        final chatService = Provider.of<ChatService>(context, listen: false);
+        chatService.userModel = userModel;
+        Navigator.pushNamed(context, 'chat');
+      },
     );
   }
 
   _loadUsers() async {
-    await Future.delayed(const Duration(milliseconds: 1000));
-    // if failed,use refreshFailed()
+    users = await getUsersService.getUsers();
+    setState(() {});
+
     _refreshController.refreshCompleted();
   }
 
